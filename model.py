@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 class Model:
     def __init__(self):
@@ -141,6 +143,46 @@ class Model:
         cap.release()
         cv2.destroyAllWindows()
 
+    def dimension_reduction(self, imgPath):
+        # Step 1: Convert RGB image to gray scale image
+        img = cv2.imread(imgPath)
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        
+        # Step 2: Normalize gray scale image
+        normalized_img = gray_img / 255.0
+        
+        # Step 3: Use PCA for dimension reduction
+        w, h = gray_img.shape
+        min_dim = min(w, h)
+        mse_threshold = 3.0
+        n = 1
+        
+        while True:
+            pca = PCA(n_components=n)
+            reduced_img = pca.inverse_transform(pca.fit_transform(normalized_img.reshape(-1, min_dim)))
+            
+            # Step 4 : Use MSE(Mean Square Error) to compute reconstruction error
+            mse = np.mean(((normalized_img - reduced_img.reshape(w, h)) * 255.0) ** 2)
+
+            print("n: {}, MSE: {}\n".format(n, mse))
+            if mse <= mse_threshold or n >= min_dim:
+                break
+            
+            n += 1
+        
+        print("Minimum n value:", n)
+        
+        # Step 5: Plot the gray scale image and the reconstruction image
+        fig, axs = plt.subplots(1, 2)
+        axs[0].imshow(normalized_img, cmap='gray')
+        axs[0].set_title("Gray Scale Image")
+        axs[0].axis('off')
+        
+        axs[1].imshow(reduced_img.reshape(w, h), cmap='gray')
+        axs[1].set_title("Reconstruction Image (n={})".format(n))
+        axs[1].axis('off')
+        
+        plt.show()
     
         
         

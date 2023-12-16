@@ -82,7 +82,11 @@ class Controller:
             self.model.video_tracking(self.static.vidPath)
 
     def dimension_reduction(self):
-        pass
+        if self.static.imgPath == '':
+            QMessageBox.warning(self.view, 'Warning', 'Please load image first!')
+            return
+        else:
+            self.model.dimension_reduction(self.static.imgPath)
 
     def show_model_structure(self):
         pass
