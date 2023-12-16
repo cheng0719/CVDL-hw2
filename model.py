@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+import torch
+from torchvision import models
+from torchvision import transforms
+from torchsummary import summary
 
 class Model:
     def __init__(self):
@@ -183,6 +187,13 @@ class Model:
         axs[1].axis('off')
         
         plt.show()
+    
+    def show_model_structure(self):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        vgg = models.vgg19_bn().to(device)
+
+        summary(vgg, (3, 224, 224))
+
     
         
         

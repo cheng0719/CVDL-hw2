@@ -89,7 +89,7 @@ class Controller:
             self.model.dimension_reduction(self.static.imgPath)
 
     def show_model_structure(self):
-        pass
+        self.model.show_model_structure()
 
     def show_accuracy_and_loss(self):
         pass
