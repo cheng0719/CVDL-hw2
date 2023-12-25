@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import view, model, static
+from PIL import Image
 
 class Controller:
     def __init__(self):
@@ -95,16 +96,22 @@ class Controller:
         pass
 
     def predict(self):
-        pass
+        # Example: Get the image data from the graffiti board
+        pil_image = self.view.graffiti_board.get_image_data()
+
+        # Example: Show the image using Pillow
+        # pil_image.show()
+
+        self.model.predict(pil_image)
 
     def reset(self):
-        pass
+        self.view.graffiti_board.clearBoard()
 
     def load_image_resnet50(self):
         pass
 
     def show_images(self):
-        pass
+        self.model.show_images()
 
     def show_model_structure_resnet50(self):
         pass

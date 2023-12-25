@@ -3,9 +3,79 @@ import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import torch
+import torch.nn as nn
 from torchvision import models
 from torchvision import transforms
 from torchsummary import summary
+from PIL import Image
+
+# Define a VGG19 model with batch normalization
+class VGG19BN(nn.Module):
+    def __init__(self):
+        super(VGG19BN, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+        self.classifier = nn.Sequential(
+            nn.Linear(512 * 1 * 1, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 10) # 10 means 10 classification classes
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+
 
 class Model:
     def __init__(self):
@@ -166,7 +236,7 @@ class Model:
             reduced_img = pca.inverse_transform(pca.fit_transform(normalized_img.reshape(-1, min_dim)))
             
             # Step 4 : Use MSE(Mean Square Error) to compute reconstruction error
-            mse = np.mean(((normalized_img - reduced_img.reshape(w, h)) * 255.0) ** 2)
+            mse = np.mean(((normalized_img - reduced_img.reshape(w, h))) ** 2 * 255.0 * 255.0)
 
             print("n: {}, MSE: {}\n".format(n, mse))
             if mse <= mse_threshold or n >= min_dim:
@@ -193,8 +263,73 @@ class Model:
         vgg = models.vgg19_bn().to(device)
 
         summary(vgg, (3, 224, 224))
-
     
+    def show_accuracy_and_loss(self):
+        pass
+
+    def predict(self, img):
+        # Define the transform for the input image
+        transform = transforms.Compose([
+            # transforms.Resize((224, 224)),  # Resize to VGG19 input size   # WRONG!!!!
+            transforms.Resize((28, 28)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+
+        # Load the trained model
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        vgg19_bn_model = VGG19BN().to(device)
+        vgg19_bn_model.load_state_dict(torch.load('./models/vgg19_bn_mnist_state_dict.pt'))
+        vgg19_bn_model.eval()
+
+        input_img_gray = img.convert('L')
+        input_tensor = transform(input_img_gray)
+        input_batch = input_tensor.unsqueeze(0).to(device)
+
+        # Perform inference
+        with torch.no_grad():
+            output = vgg19_bn_model(input_batch)
+
+        # Get the predicted class
+        _, predicted_class = torch.max(output, 1)
+        print(f"Predicted class: {predicted_class.item()}")
+    
+    def show_images(self):
+        # Load 2 image using PIL, 1 is the image from ./inference_dataset/cat/1.jpg, the other is the image from ./inference_dataset/dog/1.jpg
+        cat = Image.open('./inference_dataset/cat/1.jpg')
+        dog = Image.open('./inference_dataset/dog/1.jpg')
+        
+        # Convert image to RGB
+        cat = cat.convert('RGB')
+        dog = dog.convert('RGB')
+        
+        # Convert image to tensor
+        transform = transforms.Compose([
+            # Resize image to 224x224
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        cat_transformed = transform(cat)
+        dog_transformed = transform(dog)
+        
+        # Show 2 image in 1 window using matplotlib.pyplot.imshow()
+        fig, axs = plt.subplots(1, 2)
+        axs[0].imshow(cat_transformed.permute(1, 2, 0))
+        axs[0].set_title("Cat")
+        axs[0].axis('off')
+
+        axs[1].imshow(dog_transformed.permute(1, 2, 0))
+        axs[1].set_title("Dog")
+        axs[1].axis('off')
+
+        plt.show()
+    
+    def show_model_structure_resnet50(self):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        resnet50 = models.resnet50().to(device)
+
+        summary(resnet50, (3, 224, 224))
         
         
         
