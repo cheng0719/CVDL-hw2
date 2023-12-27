@@ -1,3 +1,4 @@
+from PyQt5 import QtWidgets, QtCore, QtGui
 import cv2
 import numpy as np
 from sklearn.decomposition import PCA
@@ -8,6 +9,8 @@ from torchvision import models
 from torchvision import transforms
 from torchsummary import summary
 from PIL import Image
+import view
+import warnings
 
 # Define a VGG19 model with batch normalization
 class VGG19BN(nn.Module):
@@ -76,10 +79,35 @@ class VGG19BN(nn.Module):
         x = self.classifier(x)
         return x
 
+class ResNet50BinaryClassifier(nn.Module):
+    def __init__(self):
+        super(ResNet50BinaryClassifier, self).__init__()
+
+        # Suppress deprecation warnings
+        warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.models._utils")
+
+        # Load the pre-trained ResNet50 model
+        resnet50_model = models.resnet50(pretrained=True)
+
+        # Remove the existing fully connected layer (usually the last layer in resnet50)
+        self.features = nn.Sequential(*list(resnet50_model.children())[:-1])
+
+        # Add a new fully connected layer with 1 output node and a Sigmoid activation function
+        self.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(2048, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.fc(x)
+        return x
+
 
 class Model:
     def __init__(self):
-        pass
+        self.view = view.View()
 
     def background_subtraction(self, vidPath):
         cap = cv2.VideoCapture(vidPath)
@@ -238,7 +266,7 @@ class Model:
             # Step 4 : Use MSE(Mean Square Error) to compute reconstruction error
             mse = np.mean(((normalized_img - reduced_img.reshape(w, h))) ** 2 * 255.0 * 255.0)
 
-            print("n: {}, MSE: {}\n".format(n, mse))
+            # print("n: {}, MSE: {}\n".format(n, mse))
             if mse <= mse_threshold or n >= min_dim:
                 break
             
@@ -265,13 +293,26 @@ class Model:
         summary(vgg, (3, 224, 224))
     
     def show_accuracy_and_loss(self):
-        pass
+        # Show ./images/AccuracyGraph.jpg and ./images/LossGraph.jpg in a new window
+        accuracy_graph = cv2.imread('./images/AccuracyGraph.jpg')
+        loss_graph = cv2.imread('./images/LossGraph.jpg')
+
+        # show 2 images in 1 window using matplotlib.pyplot.imshow(), one on left and one on right
+        fig, axs = plt.subplots(1, 2)
+        axs[0].imshow(accuracy_graph)
+        axs[0].set_title("Accuracy")
+        axs[0].axis('off')
+
+        axs[1].imshow(loss_graph)
+        axs[1].set_title("Loss")
+        axs[1].axis('off')
+
+        plt.show()
 
     def predict(self, img):
         # Define the transform for the input image
         transform = transforms.Compose([
-            # transforms.Resize((224, 224)),  # Resize to VGG19 input size   # WRONG!!!!
-            transforms.Resize((28, 28)),
+            transforms.Resize((28, 28)),  # Since I didn't resize the image to 224x224 when training the model
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
         ])
@@ -292,7 +333,13 @@ class Model:
 
         # Get the predicted class
         _, predicted_class = torch.max(output, 1)
-        print(f"Predicted class: {predicted_class.item()}")
+        # print(f"Predicted class: {predicted_class.item()}")
+        
+        # Apply softmax to get probabilities
+        probabilities = torch.nn.functional.softmax(output[0], dim=0)
+
+        return predicted_class.item(), probabilities
+
     
     def show_images(self):
         # Load 2 image using PIL, 1 is the image from ./inference_dataset/cat/1.jpg, the other is the image from ./inference_dataset/dog/1.jpg
@@ -327,9 +374,54 @@ class Model:
     
     def show_model_structure_resnet50(self):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        resnet50 = models.resnet50().to(device)
+        resnet50 = ResNet50BinaryClassifier().to(device)
 
         summary(resnet50, (3, 224, 224))
+
+    def show_comparison(self):
+        # Show ./images/Comparison.jpg in a new window
+        comparison = cv2.imread('./images/ResnetAccuracyComparison.jpg')
+        # turn the image to RGB
+        comparison = cv2.cvtColor(comparison, cv2.COLOR_BGR2RGB)
+        plt.imshow(comparison)
+        plt.axis('off')
+        plt.show()
+    
+    def inference(self, imgPath):
+        # Load the image
+        img = Image.open(imgPath)
+        
+        # Convert image to RGB
+        img = img.convert('RGB')
+        
+        # Convert image to tensor
+        transform = transforms.Compose([
+            # Resize image to 224x224
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            # transforms.Normalize((0.5,), (0.5,))
+        ])
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        img_transformed = transform(img)
+        input_batch = img_transformed.unsqueeze(0).to(device)
+        
+        # Perform inference
+        resnet50_model = ResNet50BinaryClassifier().to(device)
+        resnet50_model.load_state_dict(torch.load('./models/resnet50_binary_classifier_20epoch_randomErasing.pt'))
+        resnet50_model.eval()
+        
+        with torch.no_grad():
+            output = resnet50_model(input_batch)
+        
+        # Interpret the model's output
+        predicted_class = 1 if output.item() > 0.5 else 0
+        # probability = output.item()
+
+        if predicted_class == 1:
+            return "Dog"
+        else:
+            return "Cat"
         
         
         

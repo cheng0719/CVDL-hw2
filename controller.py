@@ -1,9 +1,11 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import view, model, static
 from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
 
 class Controller:
     def __init__(self):
@@ -93,32 +95,78 @@ class Controller:
         self.model.show_model_structure()
 
     def show_accuracy_and_loss(self):
-        pass
+        self.model.show_accuracy_and_loss()
 
     def predict(self):
-        # Example: Get the image data from the graffiti board
+        # Get the image data from the graffiti board
         pil_image = self.view.graffiti_board.get_image_data()
 
-        # Example: Show the image using Pillow
+        # Show the image using Pillow
         # pil_image.show()
 
-        self.model.predict(pil_image)
+        output, probabilities = self.model.predict(pil_image)
+
+        # Display output in the text box
+        output_label_vgg = QtWidgets.QLabel(str(output), self.view.ui.MNIST_Classifier_using_VGG19_groupBox)
+        output_label_vgg.setGeometry(QtCore.QRect(145, 230, 151, 31))
+        output_label_vgg.setObjectName("output_label_vgg")
+        output_label_vgg.show()
+
+        # Get class labels (0 to 9)
+        class_labels = list(range(10))
+
+        # Plot the probabilities
+        plt.bar(class_labels, probabilities.cpu().numpy())
+        plt.xlabel('Class')
+        plt.ylabel('Probability')
+        plt.title('Probability of each class')
+        plt.xticks(class_labels)
+        plt.show()
 
     def reset(self):
         self.view.graffiti_board.clearBoard()
 
+        # Find and remove the existing output_label_vgg
+        existing_output_label_vgg = self.view.ui.MNIST_Classifier_using_VGG19_groupBox.findChild(QtWidgets.QLabel, "output_label_vgg")
+        if existing_output_label_vgg:
+            existing_output_label_vgg.deleteLater()
+
     def load_image_resnet50(self):
-        pass
+        filePath, filterType = QtWidgets.QFileDialog.getOpenFileName()
+        self.static.imgResnetPath = filePath
+
+        # display the image which path is self.static.imgResnetPath in the self.view.ui.ResNet50_graphicsView
+        self.view.ui.ResNet50_graphicsView.scene = QtWidgets.QGraphicsScene()
+        self.view.ui.ResNet50_graphicsView.scene.addPixmap(QtGui.QPixmap(self.static.imgResnetPath))
+        # resize the image to fit the graphics view
+        self.view.ui.ResNet50_graphicsView.fitInView(self.view.ui.ResNet50_graphicsView.scene.itemsBoundingRect(), QtCore.Qt.KeepAspectRatio)
+        # set the scene
+        self.view.ui.ResNet50_graphicsView.setScene(self.view.ui.ResNet50_graphicsView.scene)
+
+        # Modify the content of output_label_resnet50
+        self.view.ui.output_label_resnet50.setText('Prediction : ')
+        # Modify the position of output_label_resnet50
+        self.view.ui.output_label_resnet50.setGeometry(QtCore.QRect(440, 320, 200, 30))
+        # Show the modified output_label_resnet50
+        self.view.ui.output_label_resnet50.show()
 
     def show_images(self):
         self.model.show_images()
 
     def show_model_structure_resnet50(self):
-        pass
+        self.model.show_model_structure_resnet50()
 
     def show_comparison(self):
-        pass
+        self.model.show_comparison()
 
     def inference(self):
-        pass
+        output = self.model.inference(self.static.imgResnetPath)
+
+        # Modify the content of output_label_resnet50
+        self.view.ui.output_label_resnet50.setText('Prediction : ' + output)
+        # Modify the position of output_label_resnet50
+        self.view.ui.output_label_resnet50.setGeometry(QtCore.QRect(425, 320, 200, 30))
+        # Show the modified output_label_resnet50
+        self.view.ui.output_label_resnet50.show()
+
 

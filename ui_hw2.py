@@ -57,7 +57,7 @@ class GraffitiBoard(QWidget):
         if event.buttons() == Qt.LeftButton:
             # Draw on the QImage
             painter_image = QPainter(self.image)
-            painter_image.setPen(QPen(Qt.white, 20, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter_image.setPen(QPen(Qt.white, 30, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             painter_image.drawLine(self.last_point, event.pos())
             painter_image.end()
 
@@ -153,6 +153,10 @@ class Ui_MainWindow(object):
         self.ResNet50_graphicsView = QtWidgets.QGraphicsView(self.ResNet50_groupBox)
         self.ResNet50_graphicsView.setGeometry(QtCore.QRect(290, 40, 351, 271))
         self.ResNet50_graphicsView.setObjectName("ResNet50_graphicsView")
+
+        self.output_label_resnet50 = QtWidgets.QLabel(self.ResNet50_groupBox)
+        self.output_label_resnet50.setGeometry(QtCore.QRect(450, 320, 351, 31))
+        self.output_label_resnet50.setObjectName("output_label_resnet50")
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
