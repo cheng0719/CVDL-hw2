@@ -1,10 +1,10 @@
 torch
 torchvision
 torchsummary
-Pillow
 matplotlib
-PyQt5
+pyqt5==5.15.6
 opencv-python
 numpy
 scikit-learn
-
+sip
+pillow==8.4.0

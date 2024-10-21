@@ -1,87 +1,67 @@
-# NCKU Computer Vision and Deep Learning Homework 2
-===
-Abstract:xxx
-## Papar Information
-- Title:  `paper name`
-- Authors:  `A`,`B`,`C`
-- Preprint: [https://arxiv.org/abs/xx]()
-- Full-preprint: [paper position]()
-- Video: [video position]()
+# NCKU Computer Vision and Deep Learning Course - Homework 2
 
-## Install & Dependence
-- python
-- pytorch
-- numpy
+## Project Specifications
+For detailed instructions on each section, please refer to the `HW2.ppt` file.
 
-## Dataset Preparation
-| Dataset | Download |
-| ---     | ---   |
-| dataset-A | [download]() |
-| dataset-B | [download]() |
-| dataset-C | [download]() |
+## Environment Setup
+To ensure smooth execution of the project code, the project includes a `Pipfile`, `Pipfile.lock`, and `.python-version` for managing dependencies and the Python version. Follow the steps below to set up the virtual environment:
 
-## Use
-- for train
-  ```
-  python train.py
-  ```
-- for test
-  ```
-  python test.py
-  ```
-## Pretrained model
-| Model | Download |
-| ---     | ---   |
-| Model-1 | [download]() |
-| Model-2 | [download]() |
-| Model-3 | [download]() |
+### Method 1: Using requirements.txt
+Alternatively, you can set up the environment using the `requirements.txt` file, which lists the same dependencies as the `Pipfile`.
 
-
-## Directory Hierarchy
+#### Step 1: Install Python 3.9
+Ensure you are using Python 3.9, as indicated in the `.python-version file`. You can install it via your preferred method or use `pyenv`:
 ```
-|—— .gitignore
-|—— controller.py
-|—— main.py
-|—— model.py
-|—— requirements.txt
-|—— ResNet50_training.py
-|—— ResNet50_training_RandomErasing.py
-|—— static.py
-|—— ui_hw2.py
-|—— VGG19bn_training.py
-|—— view.py
-|—— __pycache__
-|    |—— controller.cpython-310.pyc
-|    |—— model.cpython-310.pyc
-|    |—— static.cpython-310.pyc
-|    |—— ui_hw2.cpython-310.pyc
-|    |—— view.cpython-310.pyc
+pyenv install 3.9.x
+pyenv local 3.9.x
 ```
-## Code Details
-### Tested Platform
-- software
-  ```
-  OS: Debian unstable (May 2021), Ubuntu LTS
-  Python: 3.8.5 (anaconda)
-  PyTorch: 1.7.1, 1.8.1
-  ```
-- hardware
-  ```
-  CPU: Intel Xeon 6226R
-  GPU: Nvidia RTX3090 (24GB)
-  ```
-### Hyper parameters
-```
-```
-## References
-- [paper-1]()
-- [paper-2]()
-- [code-1](https://github.com)
-- [code-2](https://github.com)
-  
-## License
 
-## Citing
-If you use xxx,please use the following BibTeX entry.
+#### Step 2: Install Dependencies
+Once you have the correct Python version, install the dependencies using the following command:
 ```
+pip install -r requirements.txt
+```
+
+#### Step 3: Run the Project Code
+After installing the dependencies, you can run the project code:
+```
+python main.py
+```  
+
+---
+
+### Method 2: Using pipenv (Pipfile and Pipfile.lock)
+#### Step 1: Install `pipenv`
+If you don't have pipenv installed, you can install it by running:
+```
+pip install pipenv
+```
+
+#### Step 2: Set the Python Version
+The project uses a specific Python version, as indicated in the `.python-version` file. You can set the correct Python version using one of the following methods:
+- **Using `pyenv`**: Install and set the Python version specified in the `.python-version` file with:
+```
+pyenv install $(cat .python-version)
+pyenv local $(cat .python-version)
+```
+
+- **Other methods**: If you're not using `pyenv`, ensure that you have the required Python version installed by checking `.python-version`. You can manually install the correct version from the [official Python website](https://www.python.org/downloads/) or use your preferred Python version manager.
+
+#### Step 3: Create and Activate the Virtual Environment
+After setting the Python version, install the required packages and set up the virtual environment by running:
+```
+pipenv install
+```
+This will automatically install the dependencies listed in the `Pipfile` and lock the versions specified in `Pipfile.lock`.
+
+#### Step 4: Activate the Virtual Environment
+To activate the virtual environment, run:
+```
+pipenv shell
+```
+
+#### Step 5: Run the Project Code
+Once the virtual environment is activated, you can proceed to execute the following command to run the project:
+```
+python main.py
 ```
