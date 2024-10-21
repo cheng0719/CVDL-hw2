@@ -65,3 +65,11 @@ Once the virtual environment is activated, you can proceed to execute the follow
 ```
 python main.py
 ```
+
+## Model Weights
+To run the project with pre-trained model weights, you can download the model files using the following link:  
+
+[Download ResNet50 binary classifier Model Weights](https://drive.google.com/file/d/1eBUr5FAUkSorrWFnlRb10ZvNIJy_Omvy/view?usp=sharing)  
+[Download VGG19 Model Weights](https://drive.google.com/file/d/1duk9cANV4OsNElA8aYfD4ZzGnaB7HpBe/view?usp=sharing)  
+
+After downloading the weights, place them in the appropriate directory as specified in the project code before running the model.
