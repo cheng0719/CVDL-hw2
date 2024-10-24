@@ -1,7 +1,7 @@
 # NCKU Computer Vision and Deep Learning Course - Homework 2
 
 ## Project Specifications
-For detailed instructions on each section, please refer to the `Cvdl_HW2_Spec.ppt` file.
+For detailed instructions on each section, please refer to the [Cvdl_HW2_Spec](https://github.com/cheng0719/Computer_Vision_and_Deep_Learning_HW2/blob/master/Cvdl_Hw2_Spec.pdf).
 
 ## Environment Setup
 To ensure smooth execution of the project code, the project includes a `Pipfile`, `Pipfile.lock`, and `.python-version` for managing dependencies and the Python version. Follow the steps below to set up the virtual environment:
